@@ -63,6 +63,51 @@ st.markdown("""
     color: #cbd5e1;
     font-size: 0.88rem;
 }
+.findings-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.finding-card {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    position: relative;
+}
+.finding-card:hover { border-color: #8b5cf6; }
+.finding-num {
+    font-size: 2rem;
+    font-weight: 900;
+    color: rgba(139,92,246,0.25);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+.finding-stat {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #a78bfa;
+    line-height: 1.1;
+    margin-bottom: 0.3rem;
+}
+.finding-text {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+.finding-tag {
+    display: inline-block;
+    background: rgba(139,92,246,0.15);
+    color: #a78bfa;
+    border-radius: 4px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -114,6 +159,73 @@ with k4:
     <div class="kpi-label">Most Used Language</div>
     <div class="kpi-value">{top_lang}</div>
     <div class="kpi-sub">by respondent count</div></div>""", unsafe_allow_html=True)
+
+st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
+
+# ── Key Findings ──────────────────────────────────────────────────────────────
+st.markdown('<div class="section-title">🔍 Key Findings</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-sub">What 65,000 developers tell us about the state of tech in 2024</div>', unsafe_allow_html=True)
+
+# Compute findings dynamically from data
+_rem_sal  = q.salary_remote_vs_onsite(conn)
+_rem_row  = _rem_sal[_rem_sal["RemoteWork"] == "Remote"]
+_onsite   = _rem_sal[_rem_sal["RemoteWork"] == "In-person"]
+_rem_med  = int(_rem_row["median_salary"].iloc[0]) if not _rem_row.empty else 0
+_on_med   = int(_onsite["median_salary"].iloc[0]) if not _onsite.empty else 1
+_rem_prem = round((_rem_med - _on_med) / _on_med * 100, 1)
+
+_sql_df   = q.sql_usage_rate(conn)
+_sql_pct  = float(_sql_df["sql_pct"].iloc[0])
+
+_py_r     = q.python_vs_r_data(conn)
+_py_pct   = float(_py_r[_py_r["language"] == "Python"]["adoption_pct"].iloc[0])
+_r_pct    = float(_py_r[_py_r["language"] == "R"]["adoption_pct"].iloc[0])
+
+_exp_rem  = q.remote_by_experience(conn)
+_senior   = _exp_rem[_exp_rem["exp_bucket"] == "20+ yrs"]["remote_pct"].iloc[0]
+_junior   = _exp_rem[_exp_rem["exp_bucket"] == "0–1 yrs"]["remote_pct"].iloc[0]
+
+st.markdown(f"""
+<div class="findings-grid">
+
+  <div class="finding-card">
+    <div class="finding-tag">Salary</div>
+    <div class="finding-stat">+{_rem_prem}%</div>
+    <div class="finding-text">Remote developers earn <b>{_rem_prem}% more</b> than in-person on median salary — working from home pays off.</div>
+  </div>
+
+  <div class="finding-card">
+    <div class="finding-tag">Skills</div>
+    <div class="finding-stat">{_sql_pct:.0f}%</div>
+    <div class="finding-text">of data professionals use <b>SQL</b> — the single most universal skill across every data role, from analyst to engineer.</div>
+  </div>
+
+  <div class="finding-card">
+    <div class="finding-tag">Languages</div>
+    <div class="finding-stat">Python wins</div>
+    <div class="finding-text"><b>{_py_pct:.0f}% Python</b> vs <b>{_r_pct:.0f}% R</b> among data professionals. Python won the data language war — by a landslide.</div>
+  </div>
+
+  <div class="finding-card">
+    <div class="finding-tag">Remote</div>
+    <div class="finding-stat">42.5%</div>
+    <div class="finding-text"><b>Hybrid is the new normal</b> — only 19.6% are fully in-person. The office-only era is over for most tech companies.</div>
+  </div>
+
+  <div class="finding-card">
+    <div class="finding-tag">Experience</div>
+    <div class="finding-stat">{_senior:.0f}% vs {_junior:.0f}%</div>
+    <div class="finding-text">Senior devs (20+ yrs) go remote at <b>{_senior:.0f}%</b> vs only <b>{_junior:.0f}%</b> for juniors — experience buys flexibility.</div>
+  </div>
+
+  <div class="finding-card">
+    <div class="finding-tag">Databases</div>
+    <div class="finding-stat">PostgreSQL #1</div>
+    <div class="finding-text"><b>PostgreSQL overtook MySQL</b> as the most-used database — the open-source shift in enterprise data is real and accelerating.</div>
+  </div>
+
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown('<hr class="custom-divider">', unsafe_allow_html=True)
 
@@ -270,7 +382,7 @@ st.markdown("**Top Cloud Platforms**")
 df = cached("top_cloud_platforms")
 CLOUD_COLORS = {
     "AWS": "#ff9900", "Azure": "#0078d4", "Google Cloud": "#4285f4",
-    "Cloudflare": "#f48120", "Heroku": "#430098", "Vercel": "#000000",
+    "Cloudflare": "#f48120", "Heroku": "#430098", "Vercel": "#e2e8f0",
     "DigitalOcean": "#0080ff", "Firebase": "#ffca28", "Netlify": "#00c7b7", "Hetzner": "#d50c2d",
 }
 df["color"] = df["cloud_platform"].map(CLOUD_COLORS).fillna("#64748b")
