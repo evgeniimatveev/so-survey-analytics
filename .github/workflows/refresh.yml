@@ -1,0 +1,28 @@
+name: Annual Data Refresh
+
+on:
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install duckdb pandas huggingface_hub
+
+      - name: Rebuild DuckDB from CSV
+        run: python src/load_data.py
+
+      - name: Run smoke tests
+        run: python scripts/smoke_test.py
+
+      - name: Upload refreshed DuckDB to HuggingFace
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/upload_db.py
