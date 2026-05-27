@@ -16,13 +16,32 @@ jobs:
       - name: Install dependencies
         run: pip install duckdb pandas huggingface_hub
 
+      - name: Check for survey CSV
+        id: csv_check
+        run: |
+          if [ -f "data/survey_results_public.csv" ]; then
+            echo "csv_present=true" >> $GITHUB_OUTPUT
+            echo "CSV found — running full data refresh"
+          else
+            echo "csv_present=false" >> $GITHUB_OUTPUT
+            echo "No CSV found — running pipeline health check instead"
+          fi
+
       - name: Rebuild DuckDB from CSV
+        if: steps.csv_check.outputs.csv_present == 'true'
         run: python src/load_data.py
+
+      - name: Download existing DuckDB (health check mode)
+        if: steps.csv_check.outputs.csv_present == 'false'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python scripts/download_db.py
 
       - name: Run smoke tests
         run: python scripts/smoke_test.py
 
       - name: Upload refreshed DuckDB to HuggingFace
+        if: steps.csv_check.outputs.csv_present == 'true'
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python scripts/upload_db.py
