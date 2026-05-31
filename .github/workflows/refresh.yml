@@ -38,12 +38,20 @@ jobs:
         run: python scripts/download_db.py
 
       - name: Run smoke tests
-        run: python scripts/smoke_test.py
+        run: python scripts/smoke_test.py 2>&1 | tee /tmp/smoke_out.txt; exit ${PIPESTATUS[0]}
 
       - name: Write pipeline summary
         run: |
           python - <<'PYEOF'
-          import duckdb, os
+          import duckdb, os, re
+
+          with open("/tmp/smoke_out.txt") as f:
+              smoke_output = f.read()
+          match = re.search(r"(\d+)/(\d+) checks passed", smoke_output)
+          if match:
+              smoke_result = f"{match.group(1)}/{match.group(2)} PASS"
+          else:
+              smoke_result = "UNKNOWN"
 
           conn = duckdb.connect("data/survey.duckdb", read_only=True)
 
@@ -68,7 +76,7 @@ jobs:
           | Remote salary premium | **+{premium}% over in-person** |
           | Most used language | **{top_lang}** |
           | Most used database | **{top_db}** |
-          | Smoke tests | **23/23 PASS** |
+          | Smoke tests | **{smoke_result}** |
 
           > All SQL queries return valid, non-empty results. Data integrity confirmed.
           """
