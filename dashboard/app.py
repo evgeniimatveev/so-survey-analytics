@@ -11,6 +11,17 @@ from src import queries as q
 
 DB_PATH = Path("data/survey.duckdb")
 
+# Auto-download DB if not present (Streamlit Cloud deployment)
+if not DB_PATH.exists():
+    from huggingface_hub import hf_hub_download
+    DB_PATH.parent.mkdir(exist_ok=True)
+    hf_hub_download(
+        repo_id="evgeniimatveevusa/so-survey-db",
+        filename="survey.duckdb",
+        repo_type="dataset",
+        local_dir=str(DB_PATH.parent),
+    )
+
 st.set_page_config(
     page_title="SO Survey Analytics 2024",
     page_icon="📊",
