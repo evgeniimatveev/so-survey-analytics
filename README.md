@@ -8,10 +8,10 @@
   <a href="https://streamlit.io/"><img src="https://img.shields.io/badge/Streamlit-1.45+-FF4B4B?style=flat-square&logo=streamlit&logoColor=white"/></a>
   <a href="https://plotly.com/"><img src="https://img.shields.io/badge/Plotly-6.0-636EFA?style=flat-square&logo=plotly&logoColor=white"/></a>
   <a href=".github/workflows/smoke.yml"><img src="https://github.com/evgeniimatveev/so-survey-analytics/actions/workflows/smoke.yml/badge.svg"/></a>
-  <a href="https://huggingface.co/spaces/evgeniimatveevusa/so-survey-analytics"><img src="https://img.shields.io/badge/HuggingFace-Spaces-FFD21E?style=flat-square&logo=huggingface&logoColor=black"/></a>
+  <a href="https://4cmjubresrab8nk6zhjqbv.streamlit.app/"><img src="https://img.shields.io/badge/Live-FF4B4B?logo=streamlit&logoColor=white&style=flat-square"/></a>
 </p>
 
-**[Live Demo → HuggingFace Spaces](https://huggingface.co/spaces/evgeniimatveevusa/so-survey-analytics)**
+**[Live Demo → Streamlit Cloud](https://4cmjubresrab8nk6zhjqbv.streamlit.app/)**
 
 ---
 
@@ -228,13 +228,12 @@ Stack Overflow Annual Survey 2024 (Kaggle CSV · 65K rows)
    Query layer (KPIs · Salary · Stack · Remote · Profile · DA/DE)
         |
         v  scripts/upload_db.py
-   HuggingFace Dataset (evgeniimatveevusa/so-survey-db)
+   HuggingFace Dataset (evgeniimatveevusa/so-survey-db · ~3.4 MB)
         |
-        v  dashboard/start.sh — download on startup
+        v  dashboard/app.py — auto-download on cold start
    Streamlit + Plotly — 6-section dashboard
         |
-        v  Docker
-   HuggingFace Spaces (always-on · 24/7)
+   Streamlit Community Cloud (always-on)
         |
    GitHub Actions — smoke.yml
    23 SQL checks on every push
@@ -303,10 +302,9 @@ PASS  top_countries_volume   PASS  python_vs_r
 | SQL engine | DuckDB 1.5.3 (in-process, zero config) |
 | Data processing | Python · pandas |
 | Dashboard | Streamlit + Plotly |
-| DB storage | HuggingFace Dataset (binary file sync) |
-| Containerization | Docker |
+| DB storage | HuggingFace Dataset (binary file, auto-downloaded) |
 | CI/CD | GitHub Actions (smoke tests · Node.js 24) |
-| Deployment | HuggingFace Spaces (Docker SDK · 24/7) |
+| Deployment | Streamlit Community Cloud |
 
 ---
 
@@ -339,14 +337,13 @@ so-survey-analytics/
 │   └── app.py            # Streamlit — 6 sections + Key Findings
 ├── scripts/
 │   ├── upload_db.py      # DuckDB → HuggingFace Dataset
-│   ├── download_db.py    # HuggingFace Dataset → DuckDB (used by Space)
-│   ├── push_to_hf_space.py
+│   ├── download_db.py    # HuggingFace Dataset → DuckDB
 │   └── smoke_test.py     # 23 assertions
 ├── .github/
 │   └── workflows/
 │       └── smoke.yml     # CI/CD — Node.js 24
-├── Dockerfile
 ├── requirements.txt
+├── runtime.txt           # python-3.11
 └── .gitignore            # data/ excluded — DB lives on HuggingFace
 ```
 
